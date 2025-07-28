@@ -1,26 +1,31 @@
-// server.js
-const express = require('express');
+const express = require("express");
+const cors = require("cors");
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 10000;
 
-let lastTenSongs = [];
-
+app.use(cors());
 app.use(express.json());
 
-// Get list
-app.get('/songs', (req, res) => {
-  res.json(lastTenSongs);
+let songHistory = [];
+
+// Get the last 10 songs
+app.get("/api/last10", (req, res) => {
+  res.json(songHistory.slice(-10).reverse());
 });
 
-// Add song
-app.post('/songs', (req, res) => {
+// Add a new song
+app.post("/api/addSong", (req, res) => {
   const { title, artist } = req.body;
-  if (!title || !artist) return res.status(400).send('Missing title or artist');
+  if (!title || !artist) return res.status(400).send("Invalid song");
 
-  lastTenSongs.unshift({ title, artist, timestamp: new Date() });
-  if (lastTenSongs.length > 10) lastTenSongs.pop();
+  const entry = `🎵 Now Playing: ${title} – ${artist}`;
+  songHistory.push(entry);
 
-  res.status(200).send('Added');
+  if (songHistory.length > 10) songHistory = songHistory.slice(-10);
+
+  res.sendStatus(200);
 });
 
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
